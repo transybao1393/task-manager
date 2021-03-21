@@ -39,16 +39,56 @@ function startTaskById(uuid) {
     });
 }
 
-// function removeTaskById(uuid) {}
-// function runAllTask() {}
+function removeTaskById(uuid) {
+    map(runningTask, function(obj){
+        if(obj.taskName === uuid) {
+            obj.execute.destroy();
+        }
+    });
+}
 
-// function stopTaskById(uuid) {}
+function runAllTask() {
+    map(runningTask, function(obj){
+        obj.execute.start();
+    });
+}
+
+function stopTaskById(uuid) {
+    map(runningTask, function(obj){
+        if(obj.taskName === uuid) {
+            obj.execute.stop();
+        }
+    });
+}
+
+app.get('/remove/task/:uuid', (req, res)=> {
+    const uuid = req.params.uuid;
+    removeTaskById(uuid);
+    res.json({
+        "message": "removed task with id" + uuid
+    });
+});
 
 app.get('/start/task/:uuid', (req, res)=> {
     const uuid = req.params.uuid;
     startTaskById(uuid);
     res.json({
         "message": "started task with id" + uuid
+    });
+});
+
+app.get('/start/tasks', (req, res)=> {
+    runAllTask();
+    res.json({
+        "message": "run all tasks that registered"
+    });
+});
+
+app.get('/stop/task/:uuid', (req, res)=> {
+    const uuid = req.params.uuid;
+    stopTaskById(uuid);
+    res.json({
+        "message": "stoped task with id" + uuid
     });
 });
 
@@ -60,7 +100,7 @@ app.get('/start/jobs', (req, res)=> {
     });
 });
 
-app.get('/add/task/:message', (req, res) => {
+app.get('/register/task/:message', (req, res) => {
     const message = req.params.message;
     addTask('*/10 * * * * *', () => {
         console.log(message);
@@ -118,11 +158,12 @@ app.get('/restart/:taskName', (req, res)=> {
 });
 
 app.get('/monit', (req, res)=> {
+    console.log('all running task', runningTask);
     res.json({
         "message": {
             "task A": taskA.getStatus(),
             "task B": taskB.getStatus(),
-            "allRunningTask": JSON.stringify(runningTask)
+            // "allRunningTask": JSON.stringify(JSON.parse(runningTask))
         }
     });
 });
