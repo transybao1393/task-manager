@@ -1,4 +1,8 @@
 'use strict'
+const cron = require('node-cron');
+const { v4: uuidv4 } = require('uuid');
+const {map} = require('lodash');
+
 let runningTask = [''];
 //- default is every one minute
 const doJob = (asterisk = '* * * * *', randomFunc) => {
@@ -7,10 +11,11 @@ const doJob = (asterisk = '* * * * *', randomFunc) => {
     });
 }
 
-function addTask(asterisk, jobFunc) {
+function addTask(asterisk, jobFunc, endTime) {
     let newTask = {
         taskName: uuidv4(),
-        execute: doJob(asterisk, jobFunc)
+        execute: doJob(asterisk, jobFunc),
+        endTime
     };
     runningTask.push(newTask);
 }
@@ -43,6 +48,10 @@ function stopTaskById(uuid) {
             obj.execute.stop();
         }
     });
+}
+
+function estimateGracefulShutdownTime() {
+
 }
 
 export {

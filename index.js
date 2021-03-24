@@ -1,65 +1,73 @@
 const express = require('express');
 const app = express();
 
-const cron = require('node-cron');
-const { v4: uuidv4 } = require('uuid');
-const {map} = require('lodash');
+// const cron = require('node-cron');
+// const { v4: uuidv4 } = require('uuid');
+// const {map} = require('lodash');
 
-let runningTask = [''];
-//- default is every one minute
-const doJob = (asterisk = '* * * * *', randomFunc) => {
-    return cron.schedule(asterisk, randomFunc, {
-        scheduled: false
-    });
-}
+const {
+    addTask,
+    startTaskById,
+    removeTaskById,
+    runAllTask,
+    stopTaskById
+} = require('./controllers/TaskManagerController');
 
-//- every 10 seconds
-let taskA = doJob('*/10 * * * * *', function() {
-    console.log('task A');
-});
+// let runningTask = [''];
+// //- default is every one minute
+// const doJob = (asterisk = '* * * * *', randomFunc) => {
+//     return cron.schedule(asterisk, randomFunc, {
+//         scheduled: false
+//     });
+// }
 
-//- every one minute
-let taskB = doJob('* * * * *', function() {
-    console.log('task B');
-});
+// //- every 10 seconds
+// let taskA = doJob('*/10 * * * * *', function() {
+//     console.log('task A');
+// });
 
-function addTask(asterisk, jobFunc) {
-    let newTask = {
-        taskName: uuidv4(),
-        execute: doJob(asterisk, jobFunc)
-    };
-    runningTask.push(newTask);
-}
+// //- every one minute
+// let taskB = doJob('* * * * *', function() {
+//     console.log('task B');
+// });
 
-function startTaskById(uuid) {
-    map(runningTask, function(obj){
-        if(obj.taskName === uuid) {
-            obj.execute.start();
-        }
-    });
-}
+// function addTask(asterisk, jobFunc) {
+//     let newTask = {
+//         taskName: uuidv4(),
+//         execute: doJob(asterisk, jobFunc)
+//     };
+//     runningTask.push(newTask);
+// }
 
-function removeTaskById(uuid) {
-    map(runningTask, function(obj){
-        if(obj.taskName === uuid) {
-            obj.execute.destroy();
-        }
-    });
-}
+// function startTaskById(uuid) {
+//     map(runningTask, function(obj){
+//         if(obj.taskName === uuid) {
+//             obj.execute.start();
+//         }
+//     });
+// }
 
-function runAllTask() {
-    map(runningTask, function(obj){
-        obj.execute.start();
-    });
-}
+// function removeTaskById(uuid) {
+//     map(runningTask, function(obj){
+//         if(obj.taskName === uuid) {
+//             obj.execute.destroy();
+//         }
+//     });
+// }
 
-function stopTaskById(uuid) {
-    map(runningTask, function(obj){
-        if(obj.taskName === uuid) {
-            obj.execute.stop();
-        }
-    });
-}
+// function runAllTask() {
+//     map(runningTask, function(obj){
+//         obj.execute.start();
+//     });
+// }
+
+// function stopTaskById(uuid) {
+//     map(runningTask, function(obj){
+//         if(obj.taskName === uuid) {
+//             obj.execute.stop();
+//         }
+//     });
+// }
 
 app.get('/remove/task/:uuid', (req, res)=> {
     const uuid = req.params.uuid;
@@ -104,8 +112,7 @@ app.get('/register/task/:message', (req, res) => {
     const message = req.params.message;
     addTask('*/10 * * * * *', () => {
         console.log(message);
-    });
-    console.log('running task', runningTask);
+    }, '*/10 * * * * *');
     res.json({
         "message": "added new task to system"
     });
@@ -158,7 +165,7 @@ app.get('/restart/:taskName', (req, res)=> {
 });
 
 app.get('/monit', (req, res)=> {
-    console.log('all running task', runningTask);
+    // console.log('all running task', runningTask);
     res.json({
         "message": {
             "task A": taskA.getStatus(),
